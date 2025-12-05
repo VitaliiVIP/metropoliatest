@@ -10,7 +10,6 @@ from pptx import Presentation
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "key"
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 pdf_text_global = None
