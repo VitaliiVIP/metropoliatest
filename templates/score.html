@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+    body {
+        text-align: center;
+        font-family: Arial, sans-serif;
+        background: url("https://idp.metropolia.fi/taustakuvat/tausta_idp.jpg") no-repeat fixed 74% 0;
+        background-size: cover;
+
+        .panel {
+            background: rgba(255, 255, 255, 0.90);
+            width: 500px;
+            margin: 150px auto;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .new-btn {
+            background-color: black;
+            color: white;
+            padding: 15px 30px;
+            font-size: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-block;
+            text-decoration: none;
+        }
+        .new-btn:active {
+            transform: scale(0.98);
+            background-color: black;
+            color: white;
+            padding: 15px 30px;
+            font-size: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+    }
+    </style>
+    <title>Quiz Finished</title>
+</head>
+<body>
+<div class="panel">
+<h1>Quiz finished!</h1>
+<p>Your score: {{ right_answers }} / {{ questions_amount }}</p>
+<p>{{final_text}}</p>
+
+<a href="/" class="new-btn">Start a new quiz</a>
+</div>
+</body>
+</html>

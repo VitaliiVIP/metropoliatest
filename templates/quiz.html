@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+    body {
+        text-align: center;
+        font-family: Arial, sans-serif;
+    }
+    </style>
+    <title>Quiz</title>
+</head>
+<body>
+
+<h2>{{ data.question }}</h2>
+
+<form method="POST" action="/">
+    <input type="hidden" name="action" value="answer">
+
+    {% for ans in data.answers %}
+        <label style="font-size: 18px">
+            <input type="radio" style="scale: 280%; margin-right: 10px; margin-bottom: 40px; color: black" name="answer" value="{{ ans.text }}" required>
+            {{ ans.text }}
+        </label>
+        <br>
+    {% endfor %}
+
+    <input type="hidden" name="correct" value="{{ data.correct_answer }}">
+
+    <br>
+    <button type="submit" style="font-size:20px;font-weight: bold; border-radius: 20px; background-color: darkblue; color: white; width: 180px; height: 90px" onclick="this.style.transform='scale(0.98)'">Answer!</button>
+</form>
+
+{% if result %}
+    <p style="font-size: 20px; font-weight: bold;">{{ result }}</p>
+{% endif %}
+
+<p>Score: {{ questions }}/{{questions_amount}}</p>
+
+</body>
+</html>

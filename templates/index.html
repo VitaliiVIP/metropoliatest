@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+    body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background: url("https://idp.metropolia.fi/taustakuvat/tausta_idp.jpg") no-repeat fixed 74% 0;
+            background-size: cover;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.90);
+            width: 500px;
+            margin: 150px auto;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* nice custom upload button */
+        .upload-btn {
+            background-color: #444;
+            color: white;
+            padding: 15px 30px;
+            font-size: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-block;
+            margin-bottom: -20px;
+        }
+
+        .upload-btn:active {
+            transform: scale(0.98);
+            background-color: #2E2E2E;
+            color: white;
+            padding: 15px 30px;
+            font-size: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-block;
+            margin-bottom: -20px;
+        }
+
+        .generate-btn {
+            background-color: darkblue;
+            font-family: Impact;
+            font-size: 40px;
+            text-shadow: -2px -2px 0 black, 2px -2px 0 black,
+                         -2px 2px 0 black, 2px 2px 0 black;
+            color: white;
+            width: 300px;
+            height: 120px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            margin-top: -20px;
+        }
+        .generate-btn:active {
+            transform: scale(0.96);
+            background-color: #02105E;
+            font-family: Impact;
+            font-size: 40px;
+            text-shadow: -2px -2px 0 black, 2px -2px 0 black,
+                         -2px 2px 0 black, 2px 2px 0 black;
+            color: white;
+            width: 300px;
+            height: 120px;
+            border-radius: 20px;
+            border: 6px solid black;
+            cursor: pointer;
+            margin-top: -20px;
+        }
+        </style>
+   <title>PDF Quiz Generator</title>
+</head>
+
+<body>
+
+<div class="panel">
+    <h2>Upload a PDF or PPTX file to generate quiz questions</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        <label for="file-upload" class="upload-btn">Choose File</label>
+        <input id="file-upload" type="file" name="pdf" required>
+        <h6 style="font-weight: normal">File between 12,500 and 27,000 symbols are recommended.</h6>
+
+        <br>
+
+        <button type="submit" class="generate-btn">Generate</button>
+    </form>
+</div>
+
+</body>
+</html>
