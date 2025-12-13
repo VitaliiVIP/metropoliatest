@@ -1,7 +1,8 @@
 import os
 import json
 import random
-from flask import Flask, render_template, request
+from uuid import uuid4
+from flask import Flask, render_template, request, session
 from openai import OpenAI
 from dotenv import load_dotenv
 from pypdf import PdfReader
@@ -10,7 +11,10 @@ from pptx import Presentation
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "change-this-secret")
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+quiz_states = {}
 
 pdf_text_global = None
 chunks_global = []
@@ -19,6 +23,24 @@ questions = 0
 right_answers = 0
 questions_amount = 20
 final_text = ""
+
+def get_quiz_state():
+    # Ensure each browser has its own session_id cookie
+    sid = session.get("session_id")
+    if not sid:
+        sid = str(uuid4())
+        session["session_id"] = sid
+
+    # Create state if not exists
+    if sid not in quiz_states:
+        quiz_states[sid] = {
+            "pdf_text": None,
+            "chunks": [],
+            "chunk_index": 0,
+            "questions": 0,
+            "right_answers": 0,
+        }
+    return quiz_states[sid]
 
 #prompt
 def generate_question(text_chunk):
@@ -119,11 +141,12 @@ def split_into_chunks(text, max_chars=1350):
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    global pdf_text_global, chunks_global, chunk_index_global, questions, right_answers, questions_amount, final_text
+    state = get_quiz_state()
 
     if request.method == "POST":
-        #New quiz
         file = request.files.get("pdf")
+
+        # === New quiz start ===
         if file and file.filename != "":
             filename = file.filename.lower()
 
@@ -134,80 +157,84 @@ def index():
             else:
                 return "Unsupported file type (use .pdf or .pptx)"
 
-            # reset global state
-            pdf_text_global = text
-            chunks_global = split_into_chunks(pdf_text_global)
-            chunk_index_global = 0
-            questions = 0
-            right_answers = 0
+            # reset THIS USER'S state
+            state["pdf_text"] = text
+            state["chunks"] = split_into_chunks(text)
+            state["chunk_index"] = 0
+            state["questions"] = 0
+            state["right_answers"] = 0
 
-            # first question
-            chunk = chunks_global[chunk_index_global % len(chunks_global)]
-            chunk_index_global += 1
+            chunk = state["chunks"][state["chunk_index"] % len(state["chunks"])]
+            state["chunk_index"] += 1
             ai_output = generate_question(chunk)
+
             return render_template(
                 "quiz.html",
                 data=ai_output,
                 result=None,
-                questions=questions,
-                right_answers=right_answers,
+                questions=state["questions"],
+                right_answers=state["right_answers"],
                 questions_amount=questions_amount,
             )
 
-        # answer
+        # === Answer to a question ===
         action = request.form.get("action")
         if action == "answer":
-            if not pdf_text_global:
-                return "No file uploaded"
+            if not state["pdf_text"]:
+                return "No file uploaded for this session"
 
             correct = request.form.get("correct")
             user_answer = request.form.get("answer")
 
-            # update counters
-            questions += 1
+            state["questions"] += 1
             if user_answer == correct:
-                right_answers += 1
+                state["right_answers"] += 1
                 result = "Yes!"
             else:
                 result = "No :("
 
-            # if 20 questions
-            if questions >= questions_amount:
-                if right_answers/questions==1:
-                    final_text="Excellent! You are fully prepared with this topic."
-                elif right_answers / questions >= 0.8:
+            q = state["questions"]
+            r = state["right_answers"]
+
+            if q >= questions_amount:
+                score = r / q
+                if score == 1:
+                    final_text = "Excellent! You are fully prepared with this topic."
+                elif score >= 0.8:
                     final_text = "Good! You answered almost all questions!"
-                elif right_answers / questions >= 0.55:
+                elif score >= 0.55:
                     final_text = "Not bad! Keep going."
-                elif right_answers/questions < 0.55:
+                else:
                     final_text = "I would recommend you to spend more time for this topic and try again."
+
                 return render_template(
                     "score.html",
-                    questions=questions,
-                    right_answers=right_answers,
-                    questions_amount = questions_amount,
-                    final_text = final_text,
+                    questions=q,
+                    right_answers=r,
+                    questions_amount=questions_amount,
+                    final_text=final_text,
                 )
 
-            #Next question
-            if not chunks_global:
-                chunks_global = split_into_chunks(pdf_text_global)
+            # next question
+            if not state["chunks"]:
+                state["chunks"] = split_into_chunks(state["pdf_text"])
 
-            chunk = chunks_global[chunk_index_global % len(chunks_global)]
-            chunk_index_global += 1
+            chunk = state["chunks"][state["chunk_index"] % len(state["chunks"])]
+            state["chunk_index"] += 1
             ai_output = generate_question(chunk)
 
             return render_template(
                 "quiz.html",
                 data=ai_output,
                 result=result,
-                questions=questions,
-                right_answers=right_answers,
+                questions=q,
+                right_answers=r,
                 questions_amount=questions_amount,
             )
 
         return "Invalid request"
 
+    # GET request
     return render_template("index.html")
 
 if __name__ == "__main__":
